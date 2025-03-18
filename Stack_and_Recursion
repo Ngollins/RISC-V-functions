@@ -17,10 +17,6 @@ puid:
 .equ TEST_BSEARCH,      0x8
 .equ TEST_ALL,          (TEST_SORT | TEST_STRCONCAT | TEST_FIB | TEST_BSEARCH)
 
-// Replace the TEST_ALL with the tests you want to run
-// OR expression also support like the TEST_ALL above
-// i.e. replace the TEST_ALL below with TEST_SORT | TEST_STRCONCAT
-//      will test on the sort and strconcat
 .global test
 test:
     .word TEST_ALL
