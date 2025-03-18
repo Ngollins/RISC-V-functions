@@ -1,0 +1,283 @@
+// Functions Lab template file
+.data
+
+.global login_name
+login_name:
+    .asciz "ngollins"
+
+.global puid
+puid:
+    .asciz "0034325506"
+
+.balign 4
+
+.equ TEST_SORT,         0x1
+.equ TEST_STRCONCAT,    0x2
+.equ TEST_FIB,          0x4
+.equ TEST_BSEARCH,      0x8
+.equ TEST_ALL,          (TEST_SORT | TEST_STRCONCAT | TEST_FIB | TEST_BSEARCH)
+
+// Replace the TEST_ALL with the tests you want to run
+// OR expression also support like the TEST_ALL above
+// i.e. replace the TEST_ALL below with TEST_SORT | TEST_STRCONCAT
+//      will test on the sort and strconcat
+.global test
+test:
+    .word TEST_ALL
+
+
+// Align to 4bytes boundary as we have a string above
+.balign 4
+
+.text
+.global asm_sort_int
+asm_sort_int:
+    /* void asm_sort_int(int32_t* arr, uint32_t n)
+     * relies on `qsort` in C standard library to 
+     * sort in ascending order
+     **/
+
+    /* Enter your code after this comment */
+
+    //x10 already arr, x11 already n
+    li x12, 4
+    la x13, asm_cmp
+
+
+    addi sp, sp, -4
+
+    sw x1, 0(sp)
+
+    jal x1, qsort
+
+    lw x1, 0(sp)
+
+    addi sp, sp, 4
+
+
+
+
+    /* Enter your code above this comment */
+    ret
+
+.global asm_cmp
+asm_cmp:
+    // int asm_cmp(const void * a, const void * b)
+    // Compare function to int32_t
+    // used for qsort
+    /* Enter your code after this comment */
+    li x6, 0
+    lw x7, 0(x10)
+    lw x28, 0(x11)
+    sub x5, x7, x28
+    blt x5, x6, ret0
+    li x10, 1
+    /* Enter your code above this comment */
+    ret
+
+ret0:
+    li x10, -1
+    ret
+
+.global asm_strconcat
+asm_strconcat:
+    /* char* asm_strconcat(char * str1, char * str2)
+     * First assign memory space with `malloc`, 
+     * concatenating `str1` and `str2`, 
+     * and return the resulted string.
+     **/
+    /* Enter your code after this comment */
+
+    addi sp, sp, -28
+
+    sw x1, 0(sp) //return 
+    sw x10, 4(sp) //str1
+    sw x11, 8(sp)  //str2
+
+    jal x1, strlen
+    sw x10, 12(sp)
+    lw x10, 8(sp)
+    jal x1, strlen
+    sw x10, 16(sp)
+
+    lw x10, 4(sp)
+    lw x11, 8(sp)
+
+    lw x5, 12(sp) //n1
+    lw x6, 16(sp) //n2
+    add x7, x5, x6
+    addi x7, x7, 1 //x7 has size
+    sw x7, 20(sp) //20(sp) is size
+
+    
+
+    //malloc step
+    addi x10, x7, 0
+    jal x1, malloc
+    //x10 has buff now
+
+    sw x10, 24(sp) //buf
+    
+
+    //memcpy ste
+    lw x11, 4(sp)
+    lw x12, 12(sp)
+
+    jal x1, memcpy
+
+
+    lw x10, 24(sp)
+    lw x12, 16(sp)
+    lw x11, 8(sp)
+    lw x5, 12(sp) 
+    add x10, x10, x5
+
+    jal x1, memcpy
+
+
+
+    lw x10, 24(sp)
+    //final step
+    
+    lw x7, 20(sp)
+    addi x6, x7, -1
+    add x5, x10, x6
+    
+    sb x0, 0(x5)
+
+    lw x1, 0(sp)
+    addi sp, sp, 28
+    
+
+
+    /* Enter your code above this comment */
+    ret
+
+.global asm_fib
+asm_fib:
+    /* uint32_t asm_fib(uint32_t n)
+     * accept an index term `n` and return 
+     * the Fn fibonacci term (F0 = 0, F1 = 1)
+     **/
+
+    /* Enter your code after this comment */
+
+
+    li x5, 2
+    blt x10, x5, _ret
+    
+    
+    addi sp, sp, -12
+    sw x1, 0(sp)
+    sw x10, 4(sp)
+
+
+    addi x10, x10, -2
+    jal x1, asm_fib
+
+    lw x5, 4(sp)
+    sw x10, 8(sp) //store current result
+
+    addi x10, x5, -1
+    jal x1, asm_fib
+
+
+    lw x5, 8(sp)
+    add x10, x10, x5
+
+    
+
+    
+    lw x1, 0(sp)
+    addi sp, sp, 12
+    ret
+
+
+
+
+_ret:   
+    ret
+
+
+    /* Enter your code above this comment */
+
+.global asm_bsearch
+asm_bsearch:
+    /* int32_t asm_bsearch(int *arr, int key, 
+                    int32_t start,
+                    int32_t end)
+     * Return the index of the element in the array
+     * if the element does not exist, return -1 instead
+     * arr: integer array to be searched
+     * key: the element we want to search on
+     * start: start index of subarray, inclusive
+     * end: end index of subarray, inclusiveloop through an entire string and only convert
+     **/
+
+    /* Enter your code after this comment */
+
+    blt x13, x12, _retu
+
+    
+    add x5, x13, x12
+    li x6, 2
+    div x6, x5, x6
+
+    li x28, 4
+    mul x28, x28, x6
+    add x7, x28, x10 //acess x6 element of arr
+    lw x7, 0(x7) //actually access
+
+    blt x7, x11, less_than
+    blt x11, x7, greater_than
+
+    addi x10, x6, 0 //return mid
+    ret
+
+
+    
+    # addi sp, sp, -8
+    # sw x1, 0(sp)
+    # sw x10, 4(sp)
+
+    # //arr[mid] < key
+
+
+    
+    
+
+    
+    # lw x1, 0(sp)
+    # addi sp, sp, 12
+    # ret
+    
+
+    /* Enter your code above this comment */
+
+less_than:
+    addi sp, sp, -4
+    sw x1, 0(sp)
+    
+
+    addi x12, x6, 1
+    jal x1, asm_bsearch
+   
+    lw x1, 0(sp)
+    addi sp, sp, 4
+    ret
+
+greater_than:
+    addi sp, sp, -4
+    sw x1, 0(sp)
+    
+
+    addi x13, x6, -1
+    jal x1, asm_bsearch
+   
+    lw x1, 0(sp)
+    addi sp, sp, 4
+    ret
+
+_retu:   
+    addi x10, x0, -1
+    ret
